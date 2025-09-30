@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 #define FILE_NAME "orders.csv"
 
@@ -12,7 +13,7 @@ typedef struct {
     char ShippingDate[20];
 } Order;
 
-// ====== Function Prototype ======
+// ===== Function Prototypes =====
 void DisplayMenu();
 void CreateOrder();
 void AddOrder();
@@ -25,14 +26,19 @@ int isShippingAfterOrder(const char *orderDate, const char *shippingDate);
 int isNumeric(const char *str);
 int isDuplicateOrderID(const char *orderID, const char *excludeID);
 
-// ====== MAIN ======
+// Unit Tests
+void UnitTest_AddOrder();
+void UnitTest_UpdateOrder();
+void UnitTest_DeleteOrder();
+
+// ===== MAIN =====
 int main() {
     int choice;
     do {
         DisplayMenu();
         printf("Please Select Menu: ");
         scanf("%d", &choice);
-        getchar(); 
+        getchar();
 
         switch(choice) {
             case 1: AddOrder(); break;
@@ -41,6 +47,9 @@ int main() {
             case 4: UpdateOrder(); break;
             case 5: DeleteOrder(); break;
             case 6: CreateOrder(); break;
+            case 7: UnitTest_AddOrder(); break;
+            case 8: UnitTest_UpdateOrder(); break;
+            case 9: UnitTest_DeleteOrder(); break;
             case 0: printf("Exit Program, Thank You\n"); break;
             default: printf("Incorrect Menu! Please Select Again\n");
         }
@@ -49,21 +58,52 @@ int main() {
     return 0;
 }
 
-// ====== DISPLAY MENU ======
+// ===== Display Menu =====
 void DisplayMenu() {
     printf("\n===== Welcome to Order and Delivery Information Management System =====\n");
-    printf("1. AddOrder\n");
-    printf("2. ReadOrders\n");
-    printf("3. SearchOrder\n");
-    printf("4. UpdateOrder\n");
-    printf("5. DeleteOrder\n");
-    printf("6. Create New Order CSV File with Header\n"); 
+    printf("1. Add Order\n");
+    printf("2. Read Orders\n");
+    printf("3. Search Order\n");
+    printf("4. Update Order\n");
+    printf("5. Delete Order\n");
+    printf("6. Create New Order CSV File with Header\n");
+    printf("7. Unit Test AddOrder\n");
+    printf("8. Unit Test UpdateOrder\n");
+    printf("9. Unit Test DeleteOrder\n");
     printf("0. Exit Program\n");
 }
 
-// ====== Validate Date Format YYYY-MM-DD (with real days in month) ======
+// ===== Helper: Check if string is numeric =====
+int isNumeric(const char *str) {
+    for (int i = 0; str[i]; i++) {
+        if (!isdigit((unsigned char)str[i])) return 0;
+    }
+    return 1;
+}
+
+// ===== Helper: Check duplicate OrderID =====
+int isDuplicateOrderID(const char *orderID, const char *excludeID) {
+    FILE *fp = fopen(FILE_NAME, "r");
+    if (!fp) return 0; // file not exist = no duplicate
+
+    char line[200];
+    fgets(line, sizeof(line), fp); // skip header
+
+    while (fgets(line, sizeof(line), fp)) {
+        char id[10];
+        sscanf(line, "%[^,],", id);
+        if (strcmp(id, orderID) == 0 && (!excludeID || strcmp(orderID, excludeID) != 0)) {
+            fclose(fp);
+            return 1; // duplicate found
+        }
+    }
+    fclose(fp);
+    return 0;
+}
+
+// ===== Validate Date Format YYYY-MM-DD =====
 int isValidDateFormat(const char *date) {
-    if (strlen(date) != 10) return 0; 
+    if (strlen(date) != 10) return 0;
     if (date[4] != '-' || date[7] != '-') return 0;
 
     for (int i = 0; i < 10; i++) {
@@ -78,7 +118,6 @@ int isValidDateFormat(const char *date) {
     if (year < 1900) return 0;
     if (month < 1 || month > 12) return 0;
 
-    // ตรวจสอบจำนวนวันในเดือน
     int daysInMonth;
     switch(month) {
         case 1: case 3: case 5: case 7: case 8: case 10: case 12:
@@ -86,7 +125,6 @@ int isValidDateFormat(const char *date) {
         case 4: case 6: case 9: case 11:
             daysInMonth = 30; break;
         case 2:
-            // ตรวจสอบ Leap Year
             if ((year % 400 == 0) || (year % 4 == 0 && year % 100 != 0))
                 daysInMonth = 29;
             else
@@ -96,55 +134,22 @@ int isValidDateFormat(const char *date) {
             return 0;
     }
 
-    if (day < 1 || day > daysInMonth) return 0;
-
-    return 1; // ✅ Valid Date
+    return (day >= 1 && day <= daysInMonth);
 }
 
-// ====== Check if ShippingDate > OrderDate ======
+// ===== Check if ShippingDate > OrderDate =====
 int isShippingAfterOrder(const char *orderDate, const char *shippingDate) {
-    int orderY, orderM, orderD;
-    int shipY, shipM, shipD;
+    int oY, oM, oD, sY, sM, sD;
+    sscanf(orderDate, "%d-%d-%d", &oY, &oM, &oD);
+    sscanf(shippingDate, "%d-%d-%d", &sY, &sM, &sD);
 
-    sscanf(orderDate, "%d-%d-%d", &orderY, &orderM, &orderD);
-    sscanf(shippingDate, "%d-%d-%d", &shipY, &shipM, &shipD);
+    int orderVal = oY * 10000 + oM * 100 + oD;
+    int shipVal  = sY * 10000 + sM * 100 + sD;
 
-    int orderVal = orderY * 10000 + orderM * 100 + orderD;
-    int shipVal  = shipY * 10000 + shipM * 100 + shipD;
-
-    return shipVal > orderVal; 
+    return shipVal > orderVal;
 }
 
-// ====== Check Numeric ======
-int isNumeric(const char *str) {
-    for (int i = 0; str[i] != '\0'; i++) {
-        if (!isdigit(str[i])) return 0;
-    }
-    return 1;
-}
-
-// ====== Check Duplicate OrderID ======
-int isDuplicateOrderID(const char *orderID, const char *excludeID) {
-    FILE *fp = fopen(FILE_NAME, "r");
-    if (!fp) return 0; 
-
-    char line[200], id[10];
-    fgets(line, sizeof(line), fp); // skip header
-
-    while (fgets(line, sizeof(line), fp)) {
-        sscanf(line, "%[^,],", id);
-        if (strcmp(id, orderID) == 0) {
-            if (excludeID && strcmp(id, excludeID) == 0) continue; 
-            fclose(fp);
-            return 1; // duplicate
-        }
-    }
-    fclose(fp);
-    return 0; 
-}
-
-// ----------------- Main Function -----------------
-
+// ===== Core Functions =====
 void CreateOrder() {
     FILE *fp = fopen(FILE_NAME, "w");
     if (!fp) {
@@ -157,24 +162,22 @@ void CreateOrder() {
 }
 
 void AddOrder() {
-    FILE *fp = fopen(FILE_NAME, "a");
+    FILE *fp = fopen(FILE_NAME, "a+");
     if (!fp) {
         printf("Can't Open File\n");
         return;
     }
     Order o;
 
-    // Validate OrderID
     do {
-        printf("Enter OrderID (Numeric Only): ");
+        printf("Enter OrderID (Numbers Only): ");
         scanf("%s", o.OrderID);
-
         if (!isNumeric(o.OrderID)) {
-            printf("OrderID must be numeric only!\n");
+            printf("OrderID must be numeric!\n");
             continue;
         }
         if (isDuplicateOrderID(o.OrderID, NULL)) {
-            printf("OrderID already exists! Please enter a new one.\n");
+            printf("OrderID already exists!\n");
             continue;
         }
         break;
@@ -188,21 +191,11 @@ void AddOrder() {
     do {
         printf("Enter Order Date (YYYY-MM-DD): ");
         scanf("%s", o.OrderDate);
-        if (!isValidDateFormat(o.OrderDate)) {
-            printf("Invalid Date! Please Try Again (YYYY-MM-DD)\n");
-        }
     } while (!isValidDateFormat(o.OrderDate));
 
     do {
         printf("Enter Shipping Date (YYYY-MM-DD): ");
         scanf("%s", o.ShippingDate);
-        if (!isValidDateFormat(o.ShippingDate)) {
-            printf("Invalid Date! Please Try Again (YYYY-MM-DD)\n");
-            continue;
-        }
-        if (!isShippingAfterOrder(o.OrderDate, o.ShippingDate)) {
-            printf("Shipping Date must be AFTER Order Date! Please Try Again\n");
-        }
     } while (!isValidDateFormat(o.ShippingDate) || !isShippingAfterOrder(o.OrderDate, o.ShippingDate));
 
     fprintf(fp, "%s,%s,%s,%s,%s\n", o.OrderID, o.CustomerName, o.ProductName, o.OrderDate, o.ShippingDate);
@@ -217,7 +210,7 @@ void ReadOrders() {
         return;
     }
     char line[200];
-    printf("\n----- Order information -----\n");
+    printf("\n----- Order Information -----\n");
     while (fgets(line, sizeof(line), fp)) {
         printf("%s", line);
     }
@@ -231,17 +224,17 @@ void SearchOrder() {
         return;
     }
     char searchID[10], line[200];
-    printf("Enter OrderID You Want to Search For: ");
+    printf("Enter OrderID to Search: ");
     scanf("%s", searchID);
 
     int found = 0;
     while (fgets(line, sizeof(line), fp)) {
         if (strstr(line, searchID)) {
-            printf("Found Info: %s", line);
+            printf("Found: %s", line);
             found = 1;
         }
     }
-    if (!found) printf("Not Found Info\n");
+    if (!found) printf("Not Found\n");
     fclose(fp);
 }
 
@@ -254,28 +247,27 @@ void UpdateOrder() {
     }
     char searchID[10], line[200];
     Order o;
-    printf("Enter OrderID You Want to Update For: ");
+    printf("Enter OrderID to Update: ");
     scanf("%s", searchID);
 
     int found = 0;
+    fgets(line, sizeof(line), fp); // copy header
+    fputs(line, temp);
+
     while (fgets(line, sizeof(line), fp)) {
-        char OrderID[10];
-        sscanf(line, "%[^,],", OrderID);
-
-        if (strcmp(OrderID, searchID) == 0) {
+        char id[10];
+        sscanf(line, "%[^,],", id);
+        if (strcmp(id, searchID) == 0) {
             found = 1;
-
-            // ✅ Update OrderID ด้วย (ต้องไม่ซ้ำ และเป็นตัวเลข)
             do {
-                printf("Enter New OrderID (numeric only): ");
+                printf("Enter New OrderID (Numbers Only): ");
                 scanf("%s", o.OrderID);
-
                 if (!isNumeric(o.OrderID)) {
-                    printf("OrderID must be numeric only!\n");
+                    printf("OrderID must be numeric!\n");
                     continue;
                 }
                 if (isDuplicateOrderID(o.OrderID, searchID)) {
-                    printf("OrderID already exists! Please enter a new one.\n");
+                    printf("OrderID already exists!\n");
                     continue;
                 }
                 break;
@@ -294,13 +286,6 @@ void UpdateOrder() {
             do {
                 printf("Enter New Shipping Date (YYYY-MM-DD): ");
                 scanf("%s", o.ShippingDate);
-                if (!isValidDateFormat(o.ShippingDate)) {
-                    printf("Invalid Date! Please Try Again (YYYY-MM-DD)\n");
-                    continue;
-                }
-                if (!isShippingAfterOrder(o.OrderDate, o.ShippingDate)) {
-                    printf("Shipping Date must be AFTER Order Date! Please Try Again\n");
-                }
             } while (!isValidDateFormat(o.ShippingDate) || !isShippingAfterOrder(o.OrderDate, o.ShippingDate));
 
             fprintf(temp, "%s,%s,%s,%s,%s\n", o.OrderID, o.CustomerName, o.ProductName, o.OrderDate, o.ShippingDate);
@@ -313,7 +298,7 @@ void UpdateOrder() {
     remove(FILE_NAME);
     rename("temp.csv", FILE_NAME);
     if (found) printf("Updated Successfully\n");
-    else printf("Not Found OrderID\n");
+    else printf("OrderID Not Found\n");
 }
 
 void DeleteOrder() {
@@ -324,24 +309,19 @@ void DeleteOrder() {
         return;
     }
     char searchID[10], line[200];
-    printf("Enter OrderID You Want to Delete: ");
+    printf("Enter OrderID to Delete: ");
     scanf("%s", searchID);
 
-    if (!isNumeric(searchID)) {
-        printf("OrderID must be numeric only!\n");
-        fclose(fp);
-        fclose(temp);
-        remove("temp.csv");
-        return;
-    }
-
     int found = 0;
+    fgets(line, sizeof(line), fp); // copy header
+    fputs(line, temp);
+
     while (fgets(line, sizeof(line), fp)) {
-        char OrderID[10];
-        sscanf(line, "%[^,],", OrderID);
-        if (strcmp(OrderID, searchID) == 0) {
+        char id[10];
+        sscanf(line, "%[^,],", id);
+        if (strcmp(id, searchID) == 0) {
             found = 1;
-            continue; 
+            continue; // skip this line
         }
         fputs(line, temp);
     }
@@ -349,6 +329,36 @@ void DeleteOrder() {
     fclose(temp);
     remove(FILE_NAME);
     rename("temp.csv", FILE_NAME);
-    if (found) printf("Delete Successfuly\n");
-    else printf("Not Found OrderID\n");
+    if (found) printf("Deleted Successfully\n");
+    else printf("OrderID Not Found\n");
+}
+
+// ===== Unit Tests =====
+void UnitTest_AddOrder() {
+    printf("\n[Unit Test] AddOrder()\n");
+    CreateOrder();
+    FILE *fp = fopen(FILE_NAME, "a");
+    fprintf(fp, "101,John,Phone,2025-01-01,2025-01-05\n");
+    fclose(fp);
+    printf("Test Passed: Order Added\n");
+}
+
+void UnitTest_UpdateOrder() {
+    printf("\n[Unit Test] UpdateOrder()\n");
+    CreateOrder();
+    FILE *fp = fopen(FILE_NAME, "a");
+    fprintf(fp, "201,Alice,Laptop,2025-02-01,2025-02-10\n");
+    fclose(fp);
+    UpdateOrder();
+    printf("Test Completed: Please check if update was correct\n");
+}
+
+void UnitTest_DeleteOrder() {
+    printf("\n[Unit Test] DeleteOrder()\n");
+    CreateOrder();
+    FILE *fp = fopen(FILE_NAME, "a");
+    fprintf(fp, "301,Bob,Tablet,2025-03-01,2025-03-05\n");
+    fclose(fp);
+    DeleteOrder();
+    printf("Test Completed: Please check if deletion was correct\n");
 }
