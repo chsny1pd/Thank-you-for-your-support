@@ -22,6 +22,8 @@ void UpdateOrder();
 void DeleteOrder();
 int isValidDateFormat(const char *date);
 int isShippingAfterOrder(const char *orderDate, const char *shippingDate);
+int isNumeric(const char *str);
+int isDuplicateOrderID(const char *orderID, const char *excludeID);
 
 // ====== MAIN ======
 int main() {
@@ -84,7 +86,7 @@ int isValidDateFormat(const char *date) {
         case 4: case 6: case 9: case 11:
             daysInMonth = 30; break;
         case 2:
-            // ตรวจสอบ leap year
+            // ตรวจสอบ Leap Year
             if ((year % 400 == 0) || (year % 4 == 0 && year % 100 != 0))
                 daysInMonth = 29;
             else
@@ -96,7 +98,7 @@ int isValidDateFormat(const char *date) {
 
     if (day < 1 || day > daysInMonth) return 0;
 
-    return 1; // ✅ valid date
+    return 1; // ✅ Valid Date
 }
 
 // ====== Check if ShippingDate > OrderDate ======
@@ -113,11 +115,38 @@ int isShippingAfterOrder(const char *orderDate, const char *shippingDate) {
     return shipVal > orderVal; 
 }
 
+// ====== Check Numeric ======
+int isNumeric(const char *str) {
+    for (int i = 0; str[i] != '\0'; i++) {
+        if (!isdigit(str[i])) return 0;
+    }
+    return 1;
+}
+
+// ====== Check Duplicate OrderID ======
+int isDuplicateOrderID(const char *orderID, const char *excludeID) {
+    FILE *fp = fopen(FILE_NAME, "r");
+    if (!fp) return 0; 
+
+    char line[200], id[10];
+    fgets(line, sizeof(line), fp); // skip header
+
+    while (fgets(line, sizeof(line), fp)) {
+        sscanf(line, "%[^,],", id);
+        if (strcmp(id, orderID) == 0) {
+            if (excludeID && strcmp(id, excludeID) == 0) continue; 
+            fclose(fp);
+            return 1; // duplicate
+        }
+    }
+    fclose(fp);
+    return 0; 
+}
 
 // ----------------- Main Function -----------------
 
 void CreateOrder() {
-    FILE *fp = fopen(FILE_NAME, "w"); // ใช้ "w" เพื่อเขียนทับ/สร้างใหม่
+    FILE *fp = fopen(FILE_NAME, "w");
     if (!fp) {
         printf("Can't Create File\n");
         return;
@@ -134,13 +163,28 @@ void AddOrder() {
         return;
     }
     Order o;
-    printf("Enter OrderID: "); scanf("%s", o.OrderID);
+
+    // Validate OrderID
+    do {
+        printf("Enter OrderID (Numeric Only): ");
+        scanf("%s", o.OrderID);
+
+        if (!isNumeric(o.OrderID)) {
+            printf("OrderID must be numeric only!\n");
+            continue;
+        }
+        if (isDuplicateOrderID(o.OrderID, NULL)) {
+            printf("OrderID already exists! Please enter a new one.\n");
+            continue;
+        }
+        break;
+    } while (1);
+
     printf("Enter Customer Name: "); getchar(); fgets(o.CustomerName, 50, stdin);
     o.CustomerName[strcspn(o.CustomerName, "\n")] = 0;
     printf("Enter Product Name: "); fgets(o.ProductName, 50, stdin);
     o.ProductName[strcspn(o.ProductName, "\n")] = 0;
 
-    // ตรวจสอบ OrderDate
     do {
         printf("Enter Order Date (YYYY-MM-DD): ");
         scanf("%s", o.OrderDate);
@@ -149,7 +193,6 @@ void AddOrder() {
         }
     } while (!isValidDateFormat(o.OrderDate));
 
-    // ตรวจสอบ ShippingDate (ต้องอยู่หลัง OrderDate)
     do {
         printf("Enter Shipping Date (YYYY-MM-DD): ");
         scanf("%s", o.ShippingDate);
@@ -218,8 +261,26 @@ void UpdateOrder() {
     while (fgets(line, sizeof(line), fp)) {
         char OrderID[10];
         sscanf(line, "%[^,],", OrderID);
+
         if (strcmp(OrderID, searchID) == 0) {
             found = 1;
+
+            // ✅ Update OrderID ด้วย (ต้องไม่ซ้ำ และเป็นตัวเลข)
+            do {
+                printf("Enter New OrderID (numeric only): ");
+                scanf("%s", o.OrderID);
+
+                if (!isNumeric(o.OrderID)) {
+                    printf("OrderID must be numeric only!\n");
+                    continue;
+                }
+                if (isDuplicateOrderID(o.OrderID, searchID)) {
+                    printf("OrderID already exists! Please enter a new one.\n");
+                    continue;
+                }
+                break;
+            } while (1);
+
             printf("Enter New Customer Name: "); getchar(); fgets(o.CustomerName, 50, stdin);
             o.CustomerName[strcspn(o.CustomerName, "\n")] = 0;
             printf("Enter New Product Name: "); fgets(o.ProductName, 50, stdin);
@@ -242,7 +303,7 @@ void UpdateOrder() {
                 }
             } while (!isValidDateFormat(o.ShippingDate) || !isShippingAfterOrder(o.OrderDate, o.ShippingDate));
 
-            fprintf(temp, "%s,%s,%s,%s,%s\n", OrderID, o.CustomerName, o.ProductName, o.OrderDate, o.ShippingDate);
+            fprintf(temp, "%s,%s,%s,%s,%s\n", o.OrderID, o.CustomerName, o.ProductName, o.OrderDate, o.ShippingDate);
         } else {
             fputs(line, temp);
         }
@@ -266,13 +327,21 @@ void DeleteOrder() {
     printf("Enter OrderID You Want to Delete: ");
     scanf("%s", searchID);
 
+    if (!isNumeric(searchID)) {
+        printf("OrderID must be numeric only!\n");
+        fclose(fp);
+        fclose(temp);
+        remove("temp.csv");
+        return;
+    }
+
     int found = 0;
     while (fgets(line, sizeof(line), fp)) {
         char OrderID[10];
         sscanf(line, "%[^,],", OrderID);
         if (strcmp(OrderID, searchID) == 0) {
             found = 1;
-            continue; // ข้ามบรรทัดนี้ (ไม่เขียนลงไฟล์ใหม่)
+            continue; 
         }
         fputs(line, temp);
     }
