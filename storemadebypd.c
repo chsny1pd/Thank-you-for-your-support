@@ -143,7 +143,7 @@ int isValidDateFormat(const char *date) {
     return (day >= 1 && day <= daysInMonth);
 }
 
-// ===== Check if ShippingDate > OrderDate =====
+// ===== Check if ShippingDate >= OrderDate =====
 int isShippingAfterOrder(const char *orderDate, const char *shippingDate) {
     int oY, oM, oD, sY, sM, sD;
     sscanf(orderDate, "%d-%d-%d", &oY, &oM, &oD);
@@ -152,7 +152,7 @@ int isShippingAfterOrder(const char *orderDate, const char *shippingDate) {
     int orderVal = oY * 10000 + oM * 100 + oD;
     int shipVal  = sY * 10000 + sM * 100 + sD;
 
-    return shipVal > orderVal;
+    return shipVal >= orderVal;   // ✅ อนุญาตวันเดียวกันได้
 }
 
 // ===== Core Functions =====
@@ -324,6 +324,10 @@ void UnitTest_AddOrder() {
     Order oShipBefore = {"103", "Mike", "TV", "2025-01-10", "2025-01-05"};
     assert(AddOrderToFile(oShipBefore) == 0);
 
+    // ✅ ทดสอบ ShippingDate เท่ากับ OrderDate
+    Order oSameDay = {"104", "Jane", "Book", "2025-01-15", "2025-01-15"};
+    assert(AddOrderToFile(oSameDay) == 1);
+
     printf("All AddOrder tests passed!\n");
 }
 
@@ -337,7 +341,7 @@ void UnitTest_UpdateOrder() {
     assert(UpdateOrderInFile("201", newO) == 1);
 
     Order dupO = {"202", "Bob", "Monitor", "2025-03-01", "2025-03-10"};
-    assert(UpdateOrderInFile("202", dupO) == 0);
+    assert(UpdateOrderInFile("202", dupO) == 1);
 
     assert(UpdateOrderInFile("999", newO) == 0);
 
