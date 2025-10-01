@@ -152,7 +152,7 @@ int isShippingAfterOrder(const char *orderDate, const char *shippingDate) {
     int orderVal = oY * 10000 + oM * 100 + oD;
     int shipVal  = sY * 10000 + sM * 100 + sD;
 
-    return shipVal >= orderVal;   // ✅ อนุญาตวันเดียวกันได้
+    return shipVal >= orderVal;
 }
 
 // ===== Core Functions =====
@@ -235,13 +235,72 @@ int DeleteOrderInFile(const char *id) {
 // ===== Interactive Versions =====
 void AddOrder() {
     Order o;
-    printf("Enter OrderID: "); scanf("%s", o.OrderID);
-    printf("Enter Customer Name: "); getchar(); fgets(o.CustomerName, 50, stdin);
-    o.CustomerName[strcspn(o.CustomerName, "\n")] = 0;
-    printf("Enter Product Name: "); fgets(o.ProductName, 50, stdin);
-    o.ProductName[strcspn(o.ProductName, "\n")] = 0;
-    printf("Enter Order Date (YYYY-MM-DD): "); scanf("%s", o.OrderDate);
-    printf("Enter Shipping Date (YYYY-MM-DD): "); scanf("%s", o.ShippingDate);
+
+    // OrderID
+    while (1) {
+        printf("Enter OrderID (numbers only): ");
+        scanf("%s", o.OrderID);
+        if (!isNumeric(o.OrderID)) {
+            printf("Error: OrderID must be numeric only.\n");
+            continue;
+        }
+        if (isDuplicateOrderID(o.OrderID, NULL)) {
+            printf("Error: OrderID already exists. Please enter a new one.\n");
+            continue;
+        }
+        break;
+    }
+
+    // Customer Name
+    getchar();
+    while (1) {
+        printf("Enter Customer Name: ");
+        fgets(o.CustomerName, 50, stdin);
+        o.CustomerName[strcspn(o.CustomerName, "\n")] = 0;
+        if (strlen(o.CustomerName) == 0) {
+            printf("Error: Customer Name cannot be empty.\n");
+            continue;
+        }
+        break;
+    }
+
+    // Product Name
+    while (1) {
+        printf("Enter Product Name: ");
+        fgets(o.ProductName, 50, stdin);
+        o.ProductName[strcspn(o.ProductName, "\n")] = 0;
+        if (strlen(o.ProductName) == 0) {
+            printf("Error: Product Name cannot be empty.\n");
+            continue;
+        }
+        break;
+    }
+
+    // Order Date
+    while (1) {
+        printf("Enter Order Date (YYYY-MM-DD): ");
+        scanf("%s", o.OrderDate);
+        if (!isValidDateFormat(o.OrderDate)) {
+            printf("Error: Invalid date format. Use YYYY-MM-DD.\n");
+            continue;
+        }
+        break;
+    }
+
+    // Shipping Date
+    while (1) {
+        printf("Enter Shipping Date (YYYY-MM-DD): ");
+        scanf("%s", o.ShippingDate);
+        if (!isValidDateFormat(o.ShippingDate)) {
+            printf("Error: Invalid date format. Use YYYY-MM-DD.\n");
+            continue;
+        }
+        if (!isShippingAfterOrder(o.OrderDate, o.ShippingDate)) {
+            printf("Error: Shipping date must be the same day or after Order date.\n");
+            continue;
+        }
+        break;
+    }
 
     if (AddOrderToFile(o)) printf("Data Added Successfully\n");
     else printf("Add Failed\n");
@@ -287,13 +346,72 @@ void UpdateOrder() {
     Order o;
     printf("Enter OrderID to Update: ");
     scanf("%s", searchID);
-    printf("Enter New OrderID: "); scanf("%s", o.OrderID);
-    printf("Enter New Customer Name: "); getchar(); fgets(o.CustomerName, 50, stdin);
-    o.CustomerName[strcspn(o.CustomerName, "\n")] = 0;
-    printf("Enter New Product Name: "); fgets(o.ProductName, 50, stdin);
-    o.ProductName[strcspn(o.ProductName, "\n")] = 0;
-    printf("Enter New Order Date (YYYY-MM-DD): "); scanf("%s", o.OrderDate);
-    printf("Enter New Shipping Date (YYYY-MM-DD): "); scanf("%s", o.ShippingDate);
+
+    // New OrderID
+    while (1) {
+        printf("Enter New OrderID (numbers only): ");
+        scanf("%s", o.OrderID);
+        if (!isNumeric(o.OrderID)) {
+            printf("Error: OrderID must be numeric only.\n");
+            continue;
+        }
+        if (isDuplicateOrderID(o.OrderID, searchID)) {
+            printf("Error: OrderID already exists. Please enter a new one.\n");
+            continue;
+        }
+        break;
+    }
+
+    // Customer Name
+    getchar();
+    while (1) {
+        printf("Enter New Customer Name: ");
+        fgets(o.CustomerName, 50, stdin);
+        o.CustomerName[strcspn(o.CustomerName, "\n")] = 0;
+        if (strlen(o.CustomerName) == 0) {
+            printf("Error: Customer Name cannot be empty.\n");
+            continue;
+        }
+        break;
+    }
+
+    // Product Name
+    while (1) {
+        printf("Enter New Product Name: ");
+        fgets(o.ProductName, 50, stdin);
+        o.ProductName[strcspn(o.ProductName, "\n")] = 0;
+        if (strlen(o.ProductName) == 0) {
+            printf("Error: Product Name cannot be empty.\n");
+            continue;
+        }
+        break;
+    }
+
+    // Order Date
+    while (1) {
+        printf("Enter New Order Date (YYYY-MM-DD): ");
+        scanf("%s", o.OrderDate);
+        if (!isValidDateFormat(o.OrderDate)) {
+            printf("Error: Invalid date format. Use YYYY-MM-DD.\n");
+            continue;
+        }
+        break;
+    }
+
+    // Shipping Date
+    while (1) {
+        printf("Enter New Shipping Date (YYYY-MM-DD): ");
+        scanf("%s", o.ShippingDate);
+        if (!isValidDateFormat(o.ShippingDate)) {
+            printf("Error: Invalid date format. Use YYYY-MM-DD.\n");
+            continue;
+        }
+        if (!isShippingAfterOrder(o.OrderDate, o.ShippingDate)) {
+            printf("Error: Shipping date must be the same day or after Order date.\n");
+            continue;
+        }
+        break;
+    }
 
     if (UpdateOrderInFile(searchID, o)) printf("Updated Successfully\n");
     else printf("Update Failed\n");
@@ -324,7 +442,6 @@ void UnitTest_AddOrder() {
     Order oShipBefore = {"103", "Mike", "TV", "2025-01-10", "2025-01-05"};
     assert(AddOrderToFile(oShipBefore) == 0);
 
-    // ✅ ทดสอบ ShippingDate เท่ากับ OrderDate
     Order oSameDay = {"104", "Jane", "Book", "2025-01-15", "2025-01-15"};
     assert(AddOrderToFile(oSameDay) == 1);
 
@@ -357,5 +474,5 @@ void UnitTest_DeleteOrder() {
     assert(DeleteOrderInFile("301") == 1);
     assert(DeleteOrderInFile("301") == 0);
 
-    printf("All DeleteOrder tests passed!\n");
+    printf("All DeleteOrder tests passed!\n");     
 }
