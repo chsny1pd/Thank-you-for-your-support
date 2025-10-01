@@ -1,20 +1,3 @@
-001,Alice,Laptop,2025-09-20,2025-09-22
-002,Bob,Mouse,2025-09-21,2025-09-23
-003,Charlie,Keyboard,2025-09-21,2025-09-24
-004,David,Monitor,2025-09-22,2025-09-25
-005,Emma,Phone,2025-09-23,2025-09-26
-006,Frank,Tablet,2025-09-23,2025-09-27
-007,Grace,Printer,2025-09-24,2025-09-28
-008,Tangmo,Love,2006-07-15,2006-11-29
-009,Hank,Camera,2025-09-25,2025-09-29
-010,Ivy,Speaker,2025-09-25,2025-09-30
-011,Jack,Router,2025-09-26,2025-10-01
-012,Kathy,Headphones,2025-09-26,2025-10-02
-013,Leo,Microphone,2025-09-27,2025-10-03
-014,Mona,Smartwatch,2025-09-27,2025-10-04
-015,Nina,Webcam,2025-09-28,2025-10-05
-016,Oscar,Projector,2025-09-28,2025-10-06
-017,Paul,SSD,2025-09-29,2025-10-07
-018,Queen,RAM,2025-09-29,2025-10-08
-019,Rick,Graphics Card,2025-09-30,2025-10-09
-0222,Titayuwen,Pordee,2025-09-30,2025-11-29
+OrderID,CustomerName,ProductName,OrderDate,ShippingDate
+001,Tangmo,Pordee,2025-10-01,2025-10-02
+002,Pordee,Tangmo,2025-10-01,2025-10-02

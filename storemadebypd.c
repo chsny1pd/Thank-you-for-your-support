@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <assert.h>
 
 #define FILE_NAME "orders.csv"
 
@@ -25,6 +26,11 @@ int isValidDateFormat(const char *date);
 int isShippingAfterOrder(const char *orderDate, const char *shippingDate);
 int isNumeric(const char *str);
 int isDuplicateOrderID(const char *orderID, const char *excludeID);
+
+// Core file operations for Unit Test
+int AddOrderToFile(Order o);
+int UpdateOrderInFile(const char *oldID, Order o);
+int DeleteOrderInFile(const char *id);
 
 // Unit Tests
 void UnitTest_AddOrder();
@@ -161,46 +167,84 @@ void CreateOrder() {
     printf("CSV File Created Successfully with Header\n");
 }
 
-void AddOrder() {
-    FILE *fp = fopen(FILE_NAME, "a+");
-    if (!fp) {
-        printf("Can't Open File\n");
-        return;
+int AddOrderToFile(Order o) {
+    if (!isNumeric(o.OrderID)) return 0;
+    if (isDuplicateOrderID(o.OrderID, NULL)) return 0;
+    if (!isValidDateFormat(o.OrderDate)) return 0;
+    if (!isValidDateFormat(o.ShippingDate)) return 0;
+    if (!isShippingAfterOrder(o.OrderDate, o.ShippingDate)) return 0;
+
+    FILE *fp = fopen(FILE_NAME, "a");
+    if (!fp) return 0;
+    fprintf(fp, "%s,%s,%s,%s,%s\n", o.OrderID, o.CustomerName, o.ProductName, o.OrderDate, o.ShippingDate);
+    fclose(fp);
+    return 1;
+}
+
+int UpdateOrderInFile(const char *oldID, Order o) {
+    FILE *fp = fopen(FILE_NAME, "r");
+    FILE *temp = fopen("temp.csv", "w");
+    if (!fp || !temp) return 0;
+
+    char line[200], id[10];
+    int found = 0;
+    fgets(line, sizeof(line), fp); fputs(line, temp); // copy header
+
+    while (fgets(line, sizeof(line), fp)) {
+        sscanf(line, "%[^,],", id);
+        if (strcmp(id, oldID) == 0) {
+            found = 1;
+            if (!isNumeric(o.OrderID) || isDuplicateOrderID(o.OrderID, oldID) ||
+                !isValidDateFormat(o.OrderDate) || !isValidDateFormat(o.ShippingDate) ||
+                !isShippingAfterOrder(o.OrderDate, o.ShippingDate)) {
+                fclose(fp); fclose(temp); remove("temp.csv");
+                return 0;
+            }
+            fprintf(temp, "%s,%s,%s,%s,%s\n", o.OrderID, o.CustomerName, o.ProductName, o.OrderDate, o.ShippingDate);
+        } else {
+            fputs(line, temp);
+        }
     }
+    fclose(fp); fclose(temp);
+    remove(FILE_NAME); rename("temp.csv", FILE_NAME);
+    return found;
+}
+
+int DeleteOrderInFile(const char *id) {
+    FILE *fp = fopen(FILE_NAME, "r");
+    FILE *temp = fopen("temp.csv", "w");
+    if (!fp || !temp) return 0;
+
+    char line[200], curID[10];
+    int found = 0;
+    fgets(line, sizeof(line), fp); fputs(line, temp);
+
+    while (fgets(line, sizeof(line), fp)) {
+        sscanf(line, "%[^,],", curID);
+        if (strcmp(curID, id) == 0) {
+            found = 1;
+            continue;
+        }
+        fputs(line, temp);
+    }
+    fclose(fp); fclose(temp);
+    remove(FILE_NAME); rename("temp.csv", FILE_NAME);
+    return found;
+}
+
+// ===== Interactive Versions =====
+void AddOrder() {
     Order o;
-
-    do {
-        printf("Enter OrderID (Numbers Only): ");
-        scanf("%s", o.OrderID);
-        if (!isNumeric(o.OrderID)) {
-            printf("OrderID must be numeric!\n");
-            continue;
-        }
-        if (isDuplicateOrderID(o.OrderID, NULL)) {
-            printf("OrderID already exists!\n");
-            continue;
-        }
-        break;
-    } while (1);
-
+    printf("Enter OrderID: "); scanf("%s", o.OrderID);
     printf("Enter Customer Name: "); getchar(); fgets(o.CustomerName, 50, stdin);
     o.CustomerName[strcspn(o.CustomerName, "\n")] = 0;
     printf("Enter Product Name: "); fgets(o.ProductName, 50, stdin);
     o.ProductName[strcspn(o.ProductName, "\n")] = 0;
+    printf("Enter Order Date (YYYY-MM-DD): "); scanf("%s", o.OrderDate);
+    printf("Enter Shipping Date (YYYY-MM-DD): "); scanf("%s", o.ShippingDate);
 
-    do {
-        printf("Enter Order Date (YYYY-MM-DD): ");
-        scanf("%s", o.OrderDate);
-    } while (!isValidDateFormat(o.OrderDate));
-
-    do {
-        printf("Enter Shipping Date (YYYY-MM-DD): ");
-        scanf("%s", o.ShippingDate);
-    } while (!isValidDateFormat(o.ShippingDate) || !isShippingAfterOrder(o.OrderDate, o.ShippingDate));
-
-    fprintf(fp, "%s,%s,%s,%s,%s\n", o.OrderID, o.CustomerName, o.ProductName, o.OrderDate, o.ShippingDate);
-    fclose(fp);
-    printf("Data Added Successfully\n");
+    if (AddOrderToFile(o)) printf("Data Added Successfully\n");
+    else printf("Add Failed\n");
 }
 
 void ReadOrders() {
@@ -239,126 +283,75 @@ void SearchOrder() {
 }
 
 void UpdateOrder() {
-    FILE *fp = fopen(FILE_NAME, "r");
-    FILE *temp = fopen("temp.csv", "w");
-    if (!fp || !temp) {
-        printf("Can't Open File\n");
-        return;
-    }
-    char searchID[10], line[200];
+    char searchID[10];
     Order o;
     printf("Enter OrderID to Update: ");
     scanf("%s", searchID);
+    printf("Enter New OrderID: "); scanf("%s", o.OrderID);
+    printf("Enter New Customer Name: "); getchar(); fgets(o.CustomerName, 50, stdin);
+    o.CustomerName[strcspn(o.CustomerName, "\n")] = 0;
+    printf("Enter New Product Name: "); fgets(o.ProductName, 50, stdin);
+    o.ProductName[strcspn(o.ProductName, "\n")] = 0;
+    printf("Enter New Order Date (YYYY-MM-DD): "); scanf("%s", o.OrderDate);
+    printf("Enter New Shipping Date (YYYY-MM-DD): "); scanf("%s", o.ShippingDate);
 
-    int found = 0;
-    fgets(line, sizeof(line), fp); // copy header
-    fputs(line, temp);
-
-    while (fgets(line, sizeof(line), fp)) {
-        char id[10];
-        sscanf(line, "%[^,],", id);
-        if (strcmp(id, searchID) == 0) {
-            found = 1;
-            do {
-                printf("Enter New OrderID (Numbers Only): ");
-                scanf("%s", o.OrderID);
-                if (!isNumeric(o.OrderID)) {
-                    printf("OrderID must be numeric!\n");
-                    continue;
-                }
-                if (isDuplicateOrderID(o.OrderID, searchID)) {
-                    printf("OrderID already exists!\n");
-                    continue;
-                }
-                break;
-            } while (1);
-
-            printf("Enter New Customer Name: "); getchar(); fgets(o.CustomerName, 50, stdin);
-            o.CustomerName[strcspn(o.CustomerName, "\n")] = 0;
-            printf("Enter New Product Name: "); fgets(o.ProductName, 50, stdin);
-            o.ProductName[strcspn(o.ProductName, "\n")] = 0;
-
-            do {
-                printf("Enter New Order Date (YYYY-MM-DD): ");
-                scanf("%s", o.OrderDate);
-            } while (!isValidDateFormat(o.OrderDate));
-
-            do {
-                printf("Enter New Shipping Date (YYYY-MM-DD): ");
-                scanf("%s", o.ShippingDate);
-            } while (!isValidDateFormat(o.ShippingDate) || !isShippingAfterOrder(o.OrderDate, o.ShippingDate));
-
-            fprintf(temp, "%s,%s,%s,%s,%s\n", o.OrderID, o.CustomerName, o.ProductName, o.OrderDate, o.ShippingDate);
-        } else {
-            fputs(line, temp);
-        }
-    }
-    fclose(fp);
-    fclose(temp);
-    remove(FILE_NAME);
-    rename("temp.csv", FILE_NAME);
-    if (found) printf("Updated Successfully\n");
-    else printf("OrderID Not Found\n");
+    if (UpdateOrderInFile(searchID, o)) printf("Updated Successfully\n");
+    else printf("Update Failed\n");
 }
 
 void DeleteOrder() {
-    FILE *fp = fopen(FILE_NAME, "r");
-    FILE *temp = fopen("temp.csv", "w");
-    if (!fp || !temp) {
-        printf("Can't Open File\n");
-        return;
-    }
-    char searchID[10], line[200];
+    char id[10];
     printf("Enter OrderID to Delete: ");
-    scanf("%s", searchID);
-
-    int found = 0;
-    fgets(line, sizeof(line), fp); // copy header
-    fputs(line, temp);
-
-    while (fgets(line, sizeof(line), fp)) {
-        char id[10];
-        sscanf(line, "%[^,],", id);
-        if (strcmp(id, searchID) == 0) {
-            found = 1;
-            continue; // skip this line
-        }
-        fputs(line, temp);
-    }
-    fclose(fp);
-    fclose(temp);
-    remove(FILE_NAME);
-    rename("temp.csv", FILE_NAME);
-    if (found) printf("Deleted Successfully\n");
-    else printf("OrderID Not Found\n");
+    scanf("%s", id);
+    if (DeleteOrderInFile(id)) printf("Deleted Successfully\n");
+    else printf("Delete Failed\n");
 }
 
 // ===== Unit Tests =====
 void UnitTest_AddOrder() {
     printf("\n[Unit Test] AddOrder()\n");
     CreateOrder();
-    FILE *fp = fopen(FILE_NAME, "a");
-    fprintf(fp, "101,John,Phone,2025-01-01,2025-01-05\n");
-    fclose(fp);
-    printf("Test Passed: Order Added\n");
+
+    Order o1 = {"101", "John", "Phone", "2025-01-01", "2025-01-05"};
+    assert(AddOrderToFile(o1) == 1);
+
+    Order oDup = {"101", "Dup", "Laptop", "2025-01-01", "2025-01-02"};
+    assert(AddOrderToFile(oDup) == 0);
+
+    Order oBadDate = {"102", "Kate", "Tablet", "2025-13-01", "2025-01-05"};
+    assert(AddOrderToFile(oBadDate) == 0);
+
+    Order oShipBefore = {"103", "Mike", "TV", "2025-01-10", "2025-01-05"};
+    assert(AddOrderToFile(oShipBefore) == 0);
+
+    printf("All AddOrder tests passed!\n");
 }
 
 void UnitTest_UpdateOrder() {
     printf("\n[Unit Test] UpdateOrder()\n");
     CreateOrder();
-    FILE *fp = fopen(FILE_NAME, "a");
-    fprintf(fp, "201,Alice,Laptop,2025-02-01,2025-02-10\n");
-    fclose(fp);
-    UpdateOrder();
-    printf("Test Completed: Please check if update was correct\n");
+    Order o1 = {"201", "Alice", "Laptop", "2025-02-01", "2025-02-10"};
+    AddOrderToFile(o1);
+
+    Order newO = {"202", "AliceNew", "PC", "2025-02-02", "2025-02-12"};
+    assert(UpdateOrderInFile("201", newO) == 1);
+
+    Order dupO = {"202", "Bob", "Monitor", "2025-03-01", "2025-03-10"};
+    assert(UpdateOrderInFile("202", dupO) == 0);
+
+    assert(UpdateOrderInFile("999", newO) == 0);
+
+    printf("All UpdateOrder tests passed!\n");
 }
 
 void UnitTest_DeleteOrder() {
     printf("\n[Unit Test] DeleteOrder()\n");
     CreateOrder();
-    FILE *fp = fopen(FILE_NAME, "a");
-    fprintf(fp, "301,Bob,Tablet,2025-03-01,2025-03-05\n");
-    fclose(fp);
-    DeleteOrder();
-    printf("Test Completed: Please check if deletion was correct\n");
+    Order o1 = {"301", "Bob", "Tablet", "2025-03-01", "2025-03-05"};
+    AddOrderToFile(o1);
+
+    assert(DeleteOrderInFile("301") == 1);
+    assert(DeleteOrderInFile("301") == 0);
+
+    printf("All DeleteOrder tests passed!\n");
 }
