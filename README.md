@@ -8,7 +8,7 @@
 ## 📘 Overview
 
 This project simulates an **Order Management System** that stores data in a CSV file.  
-Users can **creteat, add, read, search, update, and delete orders**, with data validation (date, product, and order ID checks).
+Users can **create, add, read, search, update, and delete orders**, with data validation (date, product, and order ID checks).
 
 Additionally, it includes:
 - ✅ Unit Tests for `Add`, `Update`, and `Delete` operations  
@@ -20,7 +20,6 @@ All data is stored in a local file: `orders.csv`
 ---
 
 ## 🧩 Project Structure
-│   
 ├── storemadebypd.c # Main program (contains menu and logic)    
 ├── storemadebypd.h # Header file with struct & function prototypes   
 ├── unittest.c # Unit Test for Add, Update, Delete   
@@ -47,10 +46,11 @@ Automatically launch the program
 
 3. If you want to compile manually:
 
-bash
-Copy code
-gcc storemadebypd.c unittest.c e2etest.c -o store
-./store
+bash  
+Copy code  
+## gcc storemadebypd.c unittest.c e2etest.c -o store  
+then type  
+## ./store
 
 ## 🖥️ Program Menu
 
@@ -81,12 +81,12 @@ When you run the program (store.exe), you’ll see:
 
 ## 🧩 End-to-End (Case 11)
 
--Creates a new CSV file
--Adds 3 sample orders
--Updates one record
--Deletes one record
--Prints all steps to the console
-Run via Menu option 11: “E2E Test (All-in-one)”
+-Creates a new CSV file  
+-Adds 3 sample orders  
+-Updates one record  
+-Deletes one record  
+-Prints all steps to the console  
+Run via Menu option 11: “E2E Test (All-in-one)”  
 
 ## 📝 Example Console Output
 ===== Order Management System =====
@@ -136,13 +136,13 @@ Headphones, Webcam, Router, SSD, HDD, GPU, Motherboard, PowerSupply
 
 ## 🧰 Tech Details
 
-● Language: C 
-● Compiler: GCC (MinGW)
-● Data Storage: CSV file (orders.csv)
-● No external libraries required
+● Language: C   
+● Compiler: GCC (MinGW)  
+● Data Storage: CSV file (orders.csv)  
+● No external libraries required  
 
 ## ✨ Author & Credits
 
-● Author: Setsin Chutsanayothin
-● Project Name: Thank-you-for-your-support
-● Inspired by: Testing-driven C development for learning purposes
+● Author: Setsin Chutsanayothin  
+● Project Name: Thank-you-for-your-support  
+● Inspired by: Testing-driven C development for learning purposes  

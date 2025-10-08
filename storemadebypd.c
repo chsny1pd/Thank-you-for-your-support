@@ -164,39 +164,63 @@ void ListProduct() {
 // ===== Interactive Versions =====
 void AddOrder() {
     Order o;
-    // OrderID
+
+    // ===== OrderID =====
     while (1) {
-        printf("Enter OrderID (numbers only): ");
-        if (scanf("%9s", o.OrderID) != 1) { while (getchar() != '\n'); continue; }
+        printf("Enter OrderID (numbers only, up to 9 digits): ");
+        fgets(o.OrderID, sizeof(o.OrderID), stdin);
+        o.OrderID[strcspn(o.OrderID, "\n")] = 0;
+
+        if (strlen(o.OrderID) == 0) {
+            printf("Error: OrderID cannot be empty.\n");
+            continue;
+        }
+        if (strlen(o.OrderID) > 9) {
+            printf("Error: OrderID must not exceed 9 digits.\n");
+            continue;
+        }
         if (!isNumeric(o.OrderID)) {
             printf("Error: OrderID must be numeric only.\n");
             continue;
         }
         if (isDuplicateOrderID(o.OrderID, NULL)) {
-            printf("Error: OrderID already exists. Please enter a new one.\n");
+            printf("Error: OrderID already exists.\n");
             continue;
         }
         break;
     }
 
-    // Customer Name
-    getchar();
+    // ===== Customer Name =====
     while (1) {
-        printf("Enter Customer Name: ");
+        printf("Enter Customer Name (max 49 characters): ");
         fgets(o.CustomerName, sizeof(o.CustomerName), stdin);
         o.CustomerName[strcspn(o.CustomerName, "\n")] = 0;
+
         if (strlen(o.CustomerName) == 0) {
             printf("Error: Customer Name cannot be empty.\n");
             continue;
         }
+        if (strlen(o.CustomerName) > 49) {
+            printf("Error: Customer Name must not exceed 49 characters.\n");
+            continue;
+        }
         break;
     }
 
-    // Product Name (must be in list)
+    // ===== Product Name =====
     while (1) {
-        printf("Enter Product Name (type 'list' to show products): ");
+        printf("Enter Product Name (type 'list' to show products, max 49 chars): ");
         fgets(o.ProductName, sizeof(o.ProductName), stdin);
         o.ProductName[strcspn(o.ProductName, "\n")] = 0;
+
+        if (strlen(o.ProductName) == 0) {
+            printf("Error: Product Name cannot be empty.\n");
+            continue;
+        }
+        if (strlen(o.ProductName) > 49) {
+            printf("Error: Product Name must not exceed 49 characters.\n");
+            continue;
+        }
         if (strcasecmp(o.ProductName, "list") == 0) {
             ListProduct();
             continue;
@@ -208,14 +232,16 @@ void AddOrder() {
         break;
     }
 
-    // Order Date: set to current date automatically
+    // ===== Order Date =====
     getCurrentDateStr(o.OrderDate, sizeof(o.OrderDate));
     printf("Order Date set to current date: %s\n", o.OrderDate);
 
-    // Shipping Date
+    // ===== Shipping Date =====
     while (1) {
-        printf("Enter Shipping Date (YYYY-MM-DD), must be within 7 days from Order Date: ");
-        scanf("%19s", o.ShippingDate);
+        printf("Enter Shipping Date (YYYY-MM-DD, within 7 days from Order Date): ");
+        fgets(o.ShippingDate, sizeof(o.ShippingDate), stdin);
+        o.ShippingDate[strcspn(o.ShippingDate, "\n")] = 0;
+
         if (!isValidDateFormat(o.ShippingDate)) {
             printf("Error: Invalid date format. Use YYYY-MM-DD.\n");
             continue;
@@ -274,13 +300,38 @@ void SearchOrder() {
 void UpdateOrder() {
     char searchID[10];
     Order o;
-    printf("Enter OrderID to Update: ");
-    scanf("%9s", searchID);
 
-    // New OrderID
+    // ===== Search OrderID =====
     while (1) {
-        printf("Enter New OrderID (numbers only): ");
-        if (scanf("%9s", o.OrderID) != 1) { while (getchar() != '\n'); continue; }
+        printf("Enter OrderID to Update (up to 9 digits): ");
+        fgets(searchID, sizeof(searchID), stdin);
+        searchID[strcspn(searchID, "\n")] = 0;
+
+        if (strlen(searchID) == 0) {
+            printf("Error: OrderID cannot be empty.\n");
+            continue;
+        }
+        if (strlen(searchID) > 9) {
+            printf("Error: OrderID must not exceed 9 digits.\n");
+            continue;
+        }
+        break;
+    }
+
+    // ===== New OrderID =====
+    while (1) {
+        printf("Enter New OrderID (numbers only, up to 9 digits): ");
+        fgets(o.OrderID, sizeof(o.OrderID), stdin);
+        o.OrderID[strcspn(o.OrderID, "\n")] = 0;
+
+        if (strlen(o.OrderID) == 0) {
+            printf("Error: OrderID cannot be empty.\n");
+            continue;
+        }
+        if (strlen(o.OrderID) > 9) {
+            printf("Error: OrderID must not exceed 9 digits.\n");
+            continue;
+        }
         if (!isNumeric(o.OrderID)) {
             printf("Error: OrderID must be numeric only.\n");
             continue;
@@ -292,24 +343,37 @@ void UpdateOrder() {
         break;
     }
 
-    // Customer Name
-    getchar();
+    // ===== Customer Name =====
     while (1) {
-        printf("Enter New Customer Name: ");
+        printf("Enter New Customer Name (max 49 characters): ");
         fgets(o.CustomerName, sizeof(o.CustomerName), stdin);
         o.CustomerName[strcspn(o.CustomerName, "\n")] = 0;
+
         if (strlen(o.CustomerName) == 0) {
             printf("Error: Customer Name cannot be empty.\n");
+            continue;
+        }
+        if (strlen(o.CustomerName) > 49) {
+            printf("Error: Customer Name must not exceed 49 characters.\n");
             continue;
         }
         break;
     }
 
-    // Product Name
+    // ===== Product Name =====
     while (1) {
-        printf("Enter New Product Name (type 'list' to show products): ");
+        printf("Enter New Product Name (type 'list' to show products, max 49 chars): ");
         fgets(o.ProductName, sizeof(o.ProductName), stdin);
         o.ProductName[strcspn(o.ProductName, "\n")] = 0;
+
+        if (strlen(o.ProductName) == 0) {
+            printf("Error: Product Name cannot be empty.\n");
+            continue;
+        }
+        if (strlen(o.ProductName) > 49) {
+            printf("Error: Product Name must not exceed 49 characters.\n");
+            continue;
+        }
         if (strcasecmp(o.ProductName, "list") == 0) {
             ListProduct();
             continue;
@@ -321,14 +385,16 @@ void UpdateOrder() {
         break;
     }
 
-    // Order Date: set to current date automatically for update
+    // ===== Order Date =====
     getCurrentDateStr(o.OrderDate, sizeof(o.OrderDate));
     printf("Order Date updated to current date: %s\n", o.OrderDate);
 
-    // Shipping Date
+    // ===== Shipping Date =====
     while (1) {
-        printf("Enter New Shipping Date (YYYY-MM-DD), must be within 7 days from Order Date: ");
-        scanf("%19s", o.ShippingDate);
+        printf("Enter New Shipping Date (YYYY-MM-DD, within 7 days): ");
+        fgets(o.ShippingDate, sizeof(o.ShippingDate), stdin);
+        o.ShippingDate[strcspn(o.ShippingDate, "\n")] = 0;
+
         if (!isValidDateFormat(o.ShippingDate)) {
             printf("Error: Invalid date format. Use YYYY-MM-DD.\n");
             continue;
@@ -346,8 +412,23 @@ void UpdateOrder() {
 
 void DeleteOrder() {
     char id[10];
-    printf("Enter OrderID to Delete: ");
-    scanf("%9s", id);
+
+    while (1) {
+        printf("Enter OrderID to Delete (up to 9 digits): ");
+        fgets(id, sizeof(id), stdin);
+        id[strcspn(id, "\n")] = 0;
+
+        if (strlen(id) == 0) {
+            printf("Error: OrderID cannot be empty.\n");
+            continue;
+        }
+        if (strlen(id) > 9) {
+            printf("Error: OrderID must not exceed 9 digits.\n");
+            continue;
+        }
+        break;
+    }
+
     if (DeleteOrderInFile(id)) printf("Deleted Successfully\n");
     else printf("Delete Failed\n");
 }
