@@ -90,31 +90,31 @@ Run via Menu option 11: “E2E Test (All-in-one)”
 
 ## 📝 Example Console Output
 ===== Order Management System =====
-1. List Product
-2. Add Order
-...
-11. E2E Test (All-in-one)
-0. Exit
-Please Select Menu: 11
-
-[INFO] Creating CSV file...
-CSV File Created Successfully with Header
-
-[INFO] Adding sample orders...
-Data Added Successfully: OrderID 101
-Data Added Successfully: OrderID 102
-Data Added Successfully: OrderID 103
-
-[INFO] Updating OrderID 102...
-Updated Successfully
-
-[INFO] Deleting OrderID 103...
-Deleted Successfully
-
-[INFO] Reading all orders...
-OrderID,CustomerName,ProductName,OrderDate,ShippingDate
-101,Alice,Laptop,2025-10-08,2025-10-09
-102,Bob,Phone,2025-10-08,2025-10-10
+1. List Product  
+2. Add Order  
+...  
+11. E2E Test (All-in-one)  
+0. Exit  
+Please Select Menu: 11  
+  
+[INFO] Creating CSV file...  
+CSV File Created Successfully with Header  
+  
+[INFO] Adding sample orders...  
+Data Added Successfully: OrderID 101  
+Data Added Successfully: OrderID 102  
+Data Added Successfully: OrderID 103  
+  
+[INFO] Updating OrderID 102...  
+Updated Successfully  
+  
+[INFO] Deleting OrderID 103...  
+Deleted Successfully  
+  
+[INFO] Reading all orders...  
+OrderID,CustomerName,ProductName,OrderDate,ShippingDate  
+101,Alice,Laptop,2025-10-08,2025-10-09  
+102,Bob,Phone,2025-10-08,2025-10-10  
 
 ## 📂 Example CSV File (orders.csv)
 OrderID,CustomerName,ProductName,OrderDate,ShippingDate
@@ -133,3 +133,16 @@ OrderID,CustomerName,ProductName,OrderDate,ShippingDate
 ## 🧠 Example Product List
 Laptop, Phone, Tablet, PC, Keyboard, Mouse, Monitor,
 Headphones, Webcam, Router, SSD, HDD, GPU, Motherboard, PowerSupply
+
+## 🧰 Tech Details
+
+● Language: C 
+● Compiler: GCC (MinGW)
+● Data Storage: CSV file (orders.csv)
+● No external libraries required
+
+## ✨ Author & Credits
+
+● Author: Setsin Chutsanayothin
+● Project Name: Thank-you-for-your-support
+● Inspired by: Testing-driven C development for learning purposes
