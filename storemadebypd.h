@@ -25,6 +25,7 @@ int isDuplicateOrderID(const char *orderID, const char *excludeID);
 void CreateOrder();
 
 // Utility & validation
+int getValidOrderID(char *buf, size_t size, const char *action);
 void safeInput(char *buf, size_t size);
 int isNumeric(const char *str);
 int isValidDateFormat(const char *date);

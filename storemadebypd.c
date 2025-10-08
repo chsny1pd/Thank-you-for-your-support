@@ -1,6 +1,27 @@
 #include "storemadebypd.h"
 
 // ===== Helper =====
+int getValidOrderID(char *buf, size_t size, const char *action) {
+    while (1) {
+        printf("Enter OrderID to %s (max 10 chars): ", action);
+        safeInput(buf, size);
+
+        if (strlen(buf) == 0) {
+            printf("OrderID cannot be empty\n");
+            continue;
+        }
+        if (strlen(buf) > 10) {
+            printf("OrderID exceeds 10 characters. %s cancelled.\n", action);
+            return 0; // invalid
+        }
+        if (!isNumeric(buf)) {
+            printf("OrderID must be numeric\n");
+            continue;
+        }
+        return 1; // valid
+    }
+}
+
 void getCurrentDateStr(char *buf, size_t size) {
     time_t t = time(NULL);
     struct tm tm = *localtime(&t);
@@ -143,16 +164,21 @@ void ListProduct() {
     for(int i=0;i<15;i++) printf("%2d. %s\n",i+1,items[i]);
 }
 
+// improved safeInput
 void safeInput(char *buf,size_t size){
     if(!fgets(buf,size,stdin)) buf[0]=0;
-    if(strchr(buf,'\n')==NULL){int c;while((c=getchar())!='\n'&&c!=EOF);}
-    else buf[strcspn(buf,"\n")]=0;
+    else buf[strcspn(buf,"\n")] = 0; // ตัด newline
+    // clear stdin ถ้า input เกิน
+    if(strlen(buf) == size-1 && buf[size-2]!='\n'){
+        int c;
+        while((c=getchar())!='\n' && c!=EOF);
+    }
 }
 
 // ===== Add/Read/Search/Update/Delete =====
 void AddOrder() {
     Order o;
-    char temp[256]; // buffer ชั่วคราว
+    char temp[256];
 
     // OrderID
     while(1){
@@ -210,23 +236,21 @@ void ReadOrders() {
 }
 
 void SearchOrder() {
-    char searchID[11]; // max 10 chars + null terminator
-    while (1) {
-        printf("Enter OrderID to search (max 10 chars): ");
-        safeInput(searchID, sizeof(searchID));
-        if (strlen(searchID) == 0) {
-            printf("OrderID cannot be empty\n");
-            continue;
-        }
-        if (strlen(searchID) > 10) {
-            printf("OrderID must be <= 10 characters\n");
-            continue;
-        }
-        if (!isNumeric(searchID)) {
-            printf("OrderID must be numeric\n");
-            continue;
-        }
-        break;
+    char searchID[256];  // ใช้ buffer ใหญ่พอ
+    printf("Enter OrderID to search (max 10 chars): ");
+    safeInput(searchID, sizeof(searchID));
+
+    if (strlen(searchID) == 0) {
+        printf("OrderID cannot be empty\n");
+        return;
+    }
+    if (strlen(searchID) > 10) {
+        printf("OrderID exceeds 10 characters. Search cancelled.\n");
+        return;  // <-- ป้องกัน input เกิน
+    }
+    if (!isNumeric(searchID)) {
+        printf("OrderID must be numeric\n");
+        return;
     }
 
     FILE *fp = fopen(FILE_NAME, "r");
@@ -250,13 +274,12 @@ void SearchOrder() {
     fclose(fp);
 }
 
-// ===== Update/Delete =====
 void UpdateOrder() {
     char searchID[11];
     Order o;
-    char temp[256]; // buffer ชั่วคราว
+    char temp[256];
 
-    // รับ OrderID ที่จะอัปเดต
+    // OrderID to update
     while(1){
         printf("Enter OrderID to Update (max 10 chars): ");
         safeInput(temp,sizeof(temp));
@@ -299,11 +322,9 @@ void UpdateOrder() {
         break;
     }
 
-    // OrderDate ใช้วันที่ปัจจุบัน
     getCurrentDateStr(o.OrderDate,sizeof(o.OrderDate));
     printf("Order Date updated to: %s\n",o.OrderDate);
 
-    // ShippingDate
     while(1){
         printf("Enter New Shipping Date (YYYY-MM-DD within 7 days): ");
         safeInput(o.ShippingDate,sizeof(o.ShippingDate));
@@ -317,27 +338,27 @@ void UpdateOrder() {
 }
 
 void DeleteOrder() {
-    char id[11]; // max 10 chars + null terminator
-    while (1) {
-        printf("Enter OrderID to Delete (max 10 chars): ");
-        safeInput(id, sizeof(id));
-        if (strlen(id) == 0) {
-            printf("OrderID cannot be empty\n");
-            continue;
-        }
-        if (strlen(id) > 10) {
-            printf("OrderID must be <= 10 characters\n");
-            continue;
-        }
-        if (!isNumeric(id)) {
-            printf("OrderID must be numeric\n");
-            continue;
-        }
-        break;
+    char id[256];  // ใช้ buffer ใหญ่พอ
+    printf("Enter OrderID to delete (max 10 chars): ");
+    safeInput(id, sizeof(id));
+
+    if (strlen(id) == 0) {
+        printf("OrderID cannot be empty\n");
+        return;
+    }
+    if (strlen(id) > 10) {
+        printf("OrderID exceeds 10 characters. Delete cancelled.\n");
+        return;  // <-- ป้องกัน input เกิน
+    }
+    if (!isNumeric(id)) {
+        printf("OrderID must be numeric\n");
+        return;
     }
 
-    if (DeleteOrderInFile(id)) printf("Deleted Successfully\n");
-    else printf("Delete Failed\n");
+    if (DeleteOrderInFile(id))
+        printf("Deleted Successfully\n");
+    else
+        printf("Delete Failed\n");
 }
 
 // ===== Main =====
