@@ -117,9 +117,9 @@ OrderID,CustomerName,ProductName,OrderDate,ShippingDate
 102,Bob,Phone,2025-10-08,2025-10-10  
 
 ## 📂 Example CSV File (orders.csv)
-OrderID,CustomerName,ProductName,OrderDate,ShippingDate
-101,Alice,Laptop,2025-10-08,2025-10-09
-102,Bob,Phone,2025-10-08,2025-10-10
+OrderID,CustomerName,ProductName,OrderDate,ShippingDate  
+101,Alice,Laptop,2025-10-08,2025-10-09  
+102,Bob,Phone,2025-10-08,2025-10-10  
 
 ## 🔍 Validation Rules
 | Field            | Rule                                          |
