@@ -20,17 +20,12 @@ All data is stored in a local file: `orders.csv`
 ---
 
 ## 🧩 Project Structure
-│
-
-├── storemadebypd.c # Main program (contains menu and logic)
-
-├── storemadebypd.h # Header file with struct & function prototypes
-
-├── unittest.c # Unit Test for Add, Update, Delete
-
-├── e2etest.c # End-to-End system test
-
-└── build.bat # Windows build script (compile & run)
+│ 
+├── storemadebypd.c # Main program (contains menu and logic) 
+├── storemadebypd.h # Header file with struct & function prototypes 
+├── unittest.c # Unit Test for Add, Update, Delete 
+├── e2etest.c # End-to-End system test 
+└── build.bat # Windows build script (compile & run) 
 
 ## ⚙️ Build & Run Instructions
 
