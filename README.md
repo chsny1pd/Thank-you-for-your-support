@@ -48,9 +48,9 @@ Automatically launch the program
 
 bash  
 Copy code  
-## gcc storemadebypd.c unittest.c e2etest.c -o store  
+● gcc storemadebypd.c unittest.c e2etest.c -o store  
 then type  
-## ./store
+● ./store
 
 ## 🖥️ Program Menu
 
