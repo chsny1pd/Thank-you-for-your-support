@@ -13,14 +13,16 @@ void E2E_Test() {
     assert(AddOrderToFile(a)==1);
     assert(AddOrderToFile(b)==1);
     assert(AddOrderToFile(c)==1);
-    printf("After adding 3 orders:\n"); ReadOrders();
+    
+    printf("\nAfter adding 3 orders:\n"); ReadOrders();
 
     Order up={"402","E2E_B_New","Monitor","",""};
     getCurrentDateStr(up.OrderDate,20); getDateStrOffset(up.ShippingDate,20,3);
     assert(UpdateOrderInFile("402",up)==1);
-    printf("After update:\n"); ReadOrders();
+    
+    printf("\nAfter update:\n"); ReadOrders();
 
     assert(DeleteOrderInFile("401")==1);
-    printf("After delete 401:\n"); ReadOrders();
-    printf("[E2E Test] Completed\n");
+    printf("\nAfter delete 401:\n"); ReadOrders();
+    printf("\n[E2E Test] Completed\n");
 }
