@@ -181,50 +181,54 @@ void AddOrder() {
     char temp[256];
 
     // OrderID
-    while(1){
+    while (1) {
         printf("Enter OrderID (numeric, max 10 chars): ");
-        safeInput(temp,sizeof(temp));
-        if(strlen(temp)==0){printf("OrderID cannot be empty\n"); continue;}
-        if(strlen(temp)>10){printf("OrderID must <=10 chars\n"); continue;}
-        if(!isNumeric(temp)){printf("OrderID must numeric\n"); continue;}
-        if(isDuplicateOrderID(temp,NULL)){printf("OrderID already exists\n"); continue;}
-        strcpy(o.OrderID,temp);
+        safeInput(temp, sizeof(temp));
+        if (strlen(temp) == 0) { printf("OrderID cannot be empty\n"); continue; }
+        if (strlen(temp) > 10) { printf("OrderID exceeds 10 characters\n"); continue; }
+        if (!isNumeric(temp)) { printf("OrderID must be numeric\n"); continue; }
+        if (isDuplicateOrderID(temp, NULL)) { printf("OrderID already exists\n"); continue; }
+        strcpy(o.OrderID, temp);
         break;
     }
 
     // CustomerName
-    while(1){
+    while (1) {
         printf("Enter Customer Name (max 50 chars): ");
-        safeInput(o.CustomerName,sizeof(o.CustomerName));
-        if(strlen(o.CustomerName)==0){printf("Customer Name cannot be empty\n"); continue;}
-        if(strlen(o.CustomerName)>50){printf("Customer Name must <=50 chars\n"); continue;}
+        safeInput(o.CustomerName, sizeof(o.CustomerName));
+        if (strlen(o.CustomerName) == 0) { printf("Customer Name cannot be empty\n"); continue; }
+        if (strlen(o.CustomerName) > 50) { printf("Customer Name exceeds 50 characters\n"); continue; }
         break;
     }
 
     // ProductName
-    while(1){
+    while (1) {
         printf("Enter Product Name ('list' to show products): ");
-        safeInput(o.ProductName,sizeof(o.ProductName));
-        if(strlen(o.ProductName)==0){printf("Product Name cannot be empty\n"); continue;}
-        if(strlen(o.ProductName)>49){printf("Product Name must <=49 chars\n"); continue;}
-        if(strcasecmp(o.ProductName,"list")==0){ListProduct(); continue;}
-        if(!isValidProduct(o.ProductName)){printf("Product not in list\n"); continue;}
+        safeInput(o.ProductName, sizeof(o.ProductName));
+        if (strlen(o.ProductName) == 0) { printf("Product Name cannot be empty\n"); continue; }
+        if (strlen(o.ProductName) > 49) { printf("Product Name exceeds 49 characters\n"); continue; }
+        if (strcasecmp(o.ProductName, "list") == 0) { ListProduct(); continue; }
+        if (!isValidProduct(o.ProductName)) { printf("Product not in list\n"); continue; }
         break;
     }
 
-    getCurrentDateStr(o.OrderDate,sizeof(o.OrderDate));
-    printf("Order Date: %s\n",o.OrderDate);
+    // OrderDate (ใช้วันที่ปัจจุบัน)
+    getCurrentDateStr(o.OrderDate, sizeof(o.OrderDate));
+    printf("Order Date: %s\n", o.OrderDate);
 
     // ShippingDate
-    while(1){
+    while (1) {
         printf("Enter Shipping Date (YYYY-MM-DD within 7 days): ");
-        safeInput(o.ShippingDate,sizeof(o.ShippingDate));
-        if(!isValidDateFormat(o.ShippingDate)){printf("Invalid date\n"); continue;}
-        if(!isShippingAfterOrderWithin7(o.OrderDate,o.ShippingDate)){printf("Shipping must be within 7 days\n"); continue;}
+        safeInput(o.ShippingDate, sizeof(o.ShippingDate));
+        if (!isValidDateFormat(o.ShippingDate)) { printf("Invalid date format\n"); continue; }
+        if (!isShippingAfterOrderWithin7(o.OrderDate, o.ShippingDate)) { printf("Shipping must be within 7 days from Order Date\n"); continue; }
         break;
     }
 
-    if(AddOrderToFile(o)) printf("Added Successfully\n"); else printf("Add Failed\n");
+    if (AddOrderToFile(o))
+        printf("Added Successfully\n");
+    else
+        printf("Add Failed\n");
 }
 
 void ReadOrders() {
@@ -236,21 +240,24 @@ void ReadOrders() {
 }
 
 void SearchOrder() {
-    char searchID[256];  // ใช้ buffer ใหญ่พอ
-    printf("Enter OrderID to search (max 10 chars): ");
-    safeInput(searchID, sizeof(searchID));
+    char searchID[256];  // buffer ใหญ่พอ
+    while(1) {
+        printf("Enter OrderID to search (max 10 chars): ");
+        safeInput(searchID, sizeof(searchID));
 
-    if (strlen(searchID) == 0) {
-        printf("OrderID cannot be empty\n");
-        return;
-    }
-    if (strlen(searchID) > 10) {
-        printf("OrderID exceeds 10 characters. Search cancelled.\n");
-        return;  // <-- ป้องกัน input เกิน
-    }
-    if (!isNumeric(searchID)) {
-        printf("OrderID must be numeric\n");
-        return;
+        if (strlen(searchID) == 0) {
+            printf("OrderID cannot be empty. Please try again.\n");
+            continue;
+        }
+        if (strlen(searchID) > 10) {
+            printf("OrderID exceeds 10 characters. Please try again.\n");
+            continue;
+        }
+        if (!isNumeric(searchID)) {
+            printf("OrderID must be numeric. Please try again.\n");
+            continue;
+        }
+        break;  // valid input
     }
 
     FILE *fp = fopen(FILE_NAME, "r");
@@ -275,84 +282,93 @@ void SearchOrder() {
 }
 
 void UpdateOrder() {
-    char searchID[11];
+    char searchID[256]; // buffer ใหญ่พอ
     Order o;
     char temp[256];
 
-    // OrderID to update
-    while(1){
+    // รับ OrderID ที่จะอัปเดต
+    while (1) {
         printf("Enter OrderID to Update (max 10 chars): ");
-        safeInput(temp,sizeof(temp));
-        if(strlen(temp)==0){printf("OrderID cannot be empty\n"); continue;}
-        if(strlen(temp)>10){printf("OrderID must <=10 chars\n"); continue;}
-        if(!isNumeric(temp)){printf("OrderID must numeric\n"); continue;}
-        strcpy(searchID,temp);
+        safeInput(searchID, sizeof(searchID));
+
+        if (strlen(searchID) == 0) { printf("OrderID cannot be empty\n"); continue; }
+        if (strlen(searchID) > 10) { printf("OrderID exceeds 10 characters\n"); continue; }
+        if (!isNumeric(searchID)) { printf("OrderID must be numeric\n"); continue; }
         break;
     }
 
     // New OrderID
-    while(1){
+    while (1) {
         printf("Enter New OrderID (numeric, max 10 chars): ");
-        safeInput(temp,sizeof(temp));
-        if(strlen(temp)==0){printf("OrderID cannot be empty\n"); continue;}
-        if(strlen(temp)>10){printf("OrderID must <=10 chars\n"); continue;}
-        if(!isNumeric(temp)){printf("OrderID must numeric\n"); continue;}
-        if(isDuplicateOrderID(temp,searchID)){printf("OrderID already exists\n"); continue;}
-        strcpy(o.OrderID,temp);
+        safeInput(temp, sizeof(temp));
+
+        if (strlen(temp) == 0) { printf("OrderID cannot be empty\n"); continue; }
+        if (strlen(temp) > 10) { printf("OrderID exceeds 10 characters\n"); continue; }
+        if (!isNumeric(temp)) { printf("OrderID must be numeric\n"); continue; }
+        if (isDuplicateOrderID(temp, searchID)) { printf("OrderID already exists\n"); continue; }
+
+        strcpy(o.OrderID, temp);
         break;
     }
 
     // CustomerName
-    while(1){
+    while (1) {
         printf("Enter New Customer Name (max 50 chars): ");
-        safeInput(o.CustomerName,sizeof(o.CustomerName));
-        if(strlen(o.CustomerName)==0){printf("Customer Name cannot be empty\n"); continue;}
-        if(strlen(o.CustomerName)>50){printf("Customer Name must <=50 chars\n"); continue;}
+        safeInput(o.CustomerName, sizeof(o.CustomerName));
+        if (strlen(o.CustomerName) == 0) { printf("Customer Name cannot be empty\n"); continue; }
+        if (strlen(o.CustomerName) > 50) { printf("Customer Name exceeds 50 characters\n"); continue; }
         break;
     }
 
     // ProductName
-    while(1){
+    while (1) {
         printf("Enter New Product Name ('list' to show products): ");
-        safeInput(o.ProductName,sizeof(o.ProductName));
-        if(strlen(o.ProductName)==0){printf("Product Name cannot be empty\n"); continue;}
-        if(strlen(o.ProductName)>49){printf("Product Name must <=49 chars\n"); continue;}
-        if(strcasecmp(o.ProductName,"list")==0){ListProduct(); continue;}
-        if(!isValidProduct(o.ProductName)){printf("Product not in list\n"); continue;}
+        safeInput(o.ProductName, sizeof(o.ProductName));
+        if (strlen(o.ProductName) == 0) { printf("Product Name cannot be empty\n"); continue; }
+        if (strlen(o.ProductName) > 49) { printf("Product Name exceeds 49 characters\n"); continue; }
+        if (strcasecmp(o.ProductName, "list") == 0) { ListProduct(); continue; }
+        if (!isValidProduct(o.ProductName)) { printf("Product not in list\n"); continue; }
         break;
     }
 
-    getCurrentDateStr(o.OrderDate,sizeof(o.OrderDate));
-    printf("Order Date updated to: %s\n",o.OrderDate);
+    // OrderDate
+    getCurrentDateStr(o.OrderDate, sizeof(o.OrderDate));
+    printf("Order Date updated to: %s\n", o.OrderDate);
 
-    while(1){
+    // ShippingDate
+    while (1) {
         printf("Enter New Shipping Date (YYYY-MM-DD within 7 days): ");
-        safeInput(o.ShippingDate,sizeof(o.ShippingDate));
-        if(!isValidDateFormat(o.ShippingDate)){printf("Invalid date\n"); continue;}
-        if(!isShippingAfterOrderWithin7(o.OrderDate,o.ShippingDate)){printf("Shipping must be within 7 days\n"); continue;}
+        safeInput(o.ShippingDate, sizeof(o.ShippingDate));
+        if (!isValidDateFormat(o.ShippingDate)) { printf("Invalid date format\n"); continue; }
+        if (!isShippingAfterOrderWithin7(o.OrderDate, o.ShippingDate)) { printf("Shipping must be within 7 days from Order Date\n"); continue; }
         break;
     }
 
-    if(UpdateOrderInFile(searchID,o)) printf("Updated Successfully\n");
-    else printf("Update Failed\n");
+    if (UpdateOrderInFile(searchID, o))
+        printf("Updated Successfully\n");
+    else
+        printf("Update Failed\n");
 }
 
 void DeleteOrder() {
-    char id[256];  // ใช้ buffer ใหญ่พอ
-    printf("Enter OrderID to delete (max 10 chars): ");
-    safeInput(id, sizeof(id));
+    char id[256];  // buffer ใหญ่พอ
+    while(1) {
+        printf("Enter OrderID to delete (max 10 chars): ");
+        safeInput(id, sizeof(id));
 
-    if (strlen(id) == 0) {
-        printf("OrderID cannot be empty\n");
-        return;
-    }
-    if (strlen(id) > 10) {
-        printf("OrderID exceeds 10 characters. Delete cancelled.\n");
-        return;  // <-- ป้องกัน input เกิน
-    }
-    if (!isNumeric(id)) {
-        printf("OrderID must be numeric\n");
-        return;
+        if (strlen(id) == 0) {
+            printf("OrderID cannot be empty. Please try again.\n");
+            continue;
+        }
+        if (strlen(id) > 10) {
+            printf("OrderID exceeds 10 characters. Please try again.\n");
+            continue;
+        }
+        if (!isNumeric(id)) {
+            printf("OrderID must be numeric. Please try again.\n");
+            continue;
+        }
+        break;  // valid input
     }
 
     if (DeleteOrderInFile(id))
