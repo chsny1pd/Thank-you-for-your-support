@@ -28,29 +28,51 @@ All data is stored in a local file: `orders.csv`
 
 ## ⚙️ Build & Run Instructions
 
-### 🪟 On Windows
+### 📦 Files Required  
+Before building, make sure you have **all 4 source files** in the same folder:  
+  
+1.storemadebypd.c  
+2.storemadebypd.h  
+3.unittest.c  
+4.e2etest.c  
+5.build.bat  
+
+These files must be downloaded or cloned before running the program.  
+
+---  
+
+### 🪟 On Windows (CMD)
 
 1. Make sure you have **GCC** (via MinGW or similar).  
    You can test by running:
    ```bash
    gcc --version
 
-2. Double-click build.bat
-It will:
+2. Build and run automatically (recommended):
+   Just double-click build.bat — it will:
 
-Compile all .c files together
-
-Produce an executable store.exe
-
-Automatically launch the program
+   1.Compile all .c files together  
+   2.Create store.exe  
+   3.Launch the program automatically  
 
 3. If you want to compile manually:
 
-bash  
 Copy code  
-● gcc storemadebypd.c unittest.c e2etest.c -o store  
-then type  
-● ./store
+- gcc storemadebypd.c unittest.c e2etest.c -o store  
+Then type  
+- store or store.exe
+
+### 💻 On Windows (PowerShell)
+
+If using PowerShell, use:
+- gcc storemadebypd.c unittest.c e2etest.c -o store.exe  
+- .\store.exe  
+
+### 🍎 On macOS / 🐧 Linux
+
+Make sure GCC or Clang is installed (brew install gcc or sudo apt install gcc):  
+- gcc storemadebypd.c unittest.c e2etest.c -o store  
+- ./store  
 
 ## 🖥️ Program Menu
 
@@ -122,13 +144,14 @@ OrderID,CustomerName,ProductName,OrderDate,ShippingDate
 102,Bob,Phone,2025-10-08,2025-10-10  
 
 ## 🔍 Validation Rules
-| Field            | Rule                                          |
-| ---------------- | --------------------------------------------- |
-| **OrderID**      | Must be numeric and unique                    |
-| **CustomerName** | Non-empty                                     |
-| **ProductName**  | Must match one of the predefined product list |
-| **OrderDate**    | Valid date format `YYYY-MM-DD`                |
-| **ShippingDate** | Same day or within 7 days after order date    |
+| Field            | Rule                                                                          | Max Length |
+| ---------------- | ----------------------------------------------------------------------------- | ---------- |
+| **OrderID**      | Must be numeric, non-empty, unique                                            | 10 chars   |
+| **CustomerName** | Must be non-empty (letters/numbers/symbols allowed)                           | 50 chars   |
+| **ProductName**  | Must match one of the predefined product list                                 | 49 chars   |
+| **OrderDate**    | Valid format `YYYY-MM-DD`, auto-filled as current date                        | 10 chars   |
+| **ShippingDate** | Valid format `YYYY-MM-DD`, must be same day or within 7 days after order date | 10 chars   |
+
 
 ## 🧠 Example Product List
 Laptop, Phone, Tablet, PC, Keyboard, Mouse, Monitor,
