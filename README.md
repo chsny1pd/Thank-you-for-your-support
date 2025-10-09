@@ -58,8 +58,9 @@ These files must be downloaded or cloned before running the program.
 3. If you want to compile manually:
 
 Copy code  
-- gcc storemadebypd.c unittest.c e2etest.c -o store  
-Then type  
+- gcc storemadebypd.c unittest.c e2etest.c -o store   
+  
+Then type   
 - store or store.exe
 
 ### 💻 On Windows (PowerShell)
